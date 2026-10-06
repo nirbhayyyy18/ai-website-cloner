@@ -1,0 +1,31 @@
+flowchart TD
+    A[Public Website URL] --> B[AI Website Cloner]
+
+    B --> C[Website Analyzer]
+    C --> C1[Playwright Browser]
+    C --> C2[Layout & Sections]
+    C --> C3[Text & Navigation]
+    C --> C4[Images & Assets]
+    C --> C5[Colors Typography Spacing]
+    C --> C6[Responsive Screenshots]
+
+    C --> D[Website Analysis JSON]
+
+    D --> E[AI Planner]
+    E --> F[Generation Plan]
+
+    F --> G[React / Next.js Code Generator]
+    G --> H[Generated Frontend]
+
+    H --> I[Build Validator]
+    I --> J{Build Successful?}
+
+    J -->|No| K[AI Repair Agent]
+    K --> H
+
+    J -->|Yes| L[Local Preview Server]
+    L --> M[Browser Preview]
+
+    M --> N[Natural Language Modification]
+    N --> O[AI Modification Agent]
+    O --> H
