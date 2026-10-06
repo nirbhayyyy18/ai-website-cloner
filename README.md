@@ -295,45 +295,65 @@ The modifier is instructed to preserve:
 This prevents a small requested change from unnecessarily redesigning the entire generated website.
 ---
 🤖 AI Provider Configuration
+
 The application uses a provider abstraction so the AI implementation can be changed without rewriting the generation workflow.
 The current setup uses Google Gemini.
+
 Create a .env.local file:
+```text
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
-
+```
 ---
 Never commit .env.local or expose the API key publicly.
 The repository .gitignore already excludes environment files.
+
+---
 ⚙️ Getting Started
 1. Clone the repository
+```text
 git clone https://github.com/nirbhayyyy18/ai-website-cloner.git
 cd ai-website-cloner
-
-2. Install dependencies
+```
+---
+3. Install dependencies
+```text
 npm install
-
-3. Install Playwright Chromium
+```
+---
+5. Install Playwright Chromium
+```text
 npx playwright install chromium
-
-4. Configure Gemini
+```
+---
+7. Configure Gemini
 Create:
+```text
 .env.local
-
+```
+---
 Add:
+```text
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
-
+```
+---
 5. Start the application
+```text
 npm run dev -- --webpack
-
+```
+---
 Open:
+
 http://localhost:3000
 
 🎯 Usage
+
 Generate a Website
 Enter a publicly accessible URL, for example:
+
 https://www.apple.com/
 
 Then click:
@@ -356,7 +376,9 @@ Start Preview
 ---
 Modify a Generated Website
 After generation, use the AI modification section.
+
 Example prompts:
+
 Make the navbar sticky.
 
 Change the primary accent color to wine red.
@@ -386,6 +408,7 @@ HTTP 500 responses and common runtime failures are surfaced instead of being sil
 
 ---
 🧩 Design Decisions
+
 Why Playwright?
 The target website is analyzed after rendering so the system can inspect the actual rendered UI instead of relying only on raw HTML.
 
@@ -393,9 +416,7 @@ Why an AI Planning Step?
 Planning is separated from code generation so the generator receives structured information about pages, components, styling and files.
 
 Why a Repair Loop?
-AI-generated code can fail because of imports, dependencies, client/server boundaries or framework-specific constraints.
-
-Passing the real compiler error back to the model makes the generation workflow more resilient.
+AI-generated code can fail because of imports, dependencies, client/server boundaries or framework-specific constraints. Passing the real compiler error back to the model makes the generation workflow more resilient.
 
 Why Local Preview?
 The assignment requires local execution and does not require production hosting.
@@ -404,12 +425,12 @@ Why Dynamic Preview Ports?
 Multiple generated projects can exist simultaneously. Dynamic port selection reduces collisions between preview processes.
 
 Why Targeted Modification?
-Regenerating the entire website for every user request could destroy previously generated design decisions.
-The modifier therefore focuses on the requested change while preserving the existing implementation.
+Regenerating the entire website for every user request could destroy previously generated design decisions. The modifier therefore focuses on the requested change while preserving the existing implementation.
 
 ---
 
 🌐 Generalization
+
 The implementation is not hardcoded to a specific website.
 The evaluator can provide different public websites, and the system follows the same pipeline:
 ```text
@@ -434,6 +455,7 @@ The analyzer extracts website-specific information dynamically, while the genera
 
 ---
 🎬 Demo Flow
+
 The recommended demonstration follows the complete agent workflow:
 ```text
 1. Enter website URL
