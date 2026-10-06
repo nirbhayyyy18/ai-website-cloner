@@ -35,6 +35,8 @@ Updated Preview
 ```
 
 The system is designed to work with different public websites rather than being hardcoded to a single target.
+
+---
 🚀 Features
 - Analyze publicly accessible websites using Playwright + Chromium
 - Extract navigation, headings, paragraphs, buttons, images and sections
