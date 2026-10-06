@@ -46,6 +46,9 @@ async function main() {
 
   const validation: BuildValidationResult = {
     success: false,
+    command: "npm run build",
+    exitCode: 1,
+    durationMs: 0,
     stdout: "",
     stderr: `
 ./src/app/page.tsx:36:9

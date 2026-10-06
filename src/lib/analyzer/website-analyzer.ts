@@ -1,6 +1,8 @@
 import { launchBrowser } from "./browser";
 import type { WebsiteAnalysis } from "./types";
 
+type RawWebsiteAnalysis = Omit<WebsiteAnalysis, "url" | "responsive">;
+
 export async function analyzeWebsite(
   url: string
 ): Promise<WebsiteAnalysis> {
@@ -19,7 +21,7 @@ export async function analyzeWebsite(
       timeout: 30000,
     });
 
-    const analysis = await page.evaluate(`
+    const analysis = (await page.evaluate(`
       (() => {
         function uniqueValues(values) {
           return Array.from(
@@ -215,7 +217,7 @@ export async function analyzeWebsite(
           },
         };
       })()
-    `);
+    `)) as RawWebsiteAnalysis;
 
     const screenshotDirectory = "generated-sites/analysis";
 
@@ -224,55 +226,54 @@ export async function analyzeWebsite(
     const mobileScreenshot = `${screenshotDirectory}/mobile.png`;
 
     await page.setViewportSize({
-    width: 1440,
-    height: 900,
+      width: 1440,
+      height: 900,
     });
 
     await page.screenshot({
-    path: desktopScreenshot,
-    fullPage: true,
+      path: desktopScreenshot,
+      fullPage: true,
     });
 
     await page.setViewportSize({
-    width: 768,
-    height: 1024,
+      width: 768,
+      height: 1024,
     });
 
     await page.screenshot({
-    path: tabletScreenshot,
-    fullPage: true,
+      path: tabletScreenshot,
+      fullPage: true,
     });
 
     await page.setViewportSize({
-    width: 390,
-    height: 844,
+      width: 390,
+      height: 844,
     });
 
     await page.screenshot({
-    path: mobileScreenshot,
-    fullPage: true,
+      path: mobileScreenshot,
+      fullPage: true,
     });
 
     const responsive = {
-    desktop: {
+      desktop: {
         width: 1440,
         height: 900,
         screenshot: desktopScreenshot,
-    },
+      },
 
-    tablet: {
+      tablet: {
         width: 768,
         height: 1024,
         screenshot: tabletScreenshot,
-    },
+      },
 
-    mobile: {
+      mobile: {
         width: 390,
         height: 844,
         screenshot: mobileScreenshot,
-    },
+      },
     };
-
 
     return {
       url,
