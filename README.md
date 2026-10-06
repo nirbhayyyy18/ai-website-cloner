@@ -32,7 +32,6 @@ Natural-Language Modification
 Rebuild + Validation
         ↓
 Updated Preview
-
 ```
 
 The system is designed to work with different public websites rather than being hardcoded to a single target.
@@ -53,10 +52,10 @@ The system is designed to work with different public websites rather than being 
 - Preserve existing design during targeted modifications
 - Rebuild and restart the preview after modifications
 - Run locally without requiring production hosting
----
 
-```text
+---
 🧠 Architecture
+```text
                          ┌─────────────────────┐
                          │   Public Website    │
                          │        URL          │
@@ -104,28 +103,28 @@ The system is designed to work with different public websites rather than being 
                          │      next build     │
                          └──────────┬──────────┘
                                     │
-                             ┌──────┴──────┐
-                             │             │
-                           Failed        Success
-                             │             │
-                             ▼             ▼
-                    ┌────────────────┐  ┌───────────────┐
-                    │   AI Repair    │  │ Local Preview │
-                    │     Loop       │  └───────┬───────┘
-                    └───────┬────────┘          │
-                            │                   ▼
-                            └──────────► ┌─────────────────┐
-                                        │   AI Modifier   │
-                                        │ Natural Language│
-                                        └────────┬────────┘
-                                                 │
-                                                 ▼
-                                        Build + Validation
-                                                 │
-                                                 ▼
-                                          Updated Preview
-
+                              ┌─────┴─────┐
+                              │           │
+                            Failed      Success
+                              │           │
+                              ▼           ▼
+                       ┌──────────────┐ ┌───────────────┐
+                       │   AI Repair  │ │ Local Preview │
+                       │     Loop     │ └───────┬───────┘
+                       └──────┬───────┘         │
+                              │                 ▼
+                              └──────────► ┌─────────────────┐
+                                          │   AI Modifier   │
+                                          │ Natural Language│
+                                          └────────┬────────┘
+                                                   │
+                                                   ▼
+                                           Build + Validation
+                                                   │
+                                                   ▼
+                                             Updated Preview
 ```
+---
 🛠️ Tech Stack
 Main Application
 - Next.js
@@ -133,20 +132,23 @@ Main Application
 - TypeScript
 - Tailwind CSS
 - Next.js App Router
+  
 Website Analysis
 - Playwright
 - Chromium
+
 AI
 - Google Gemini
 - Configurable model through environment variables
 - Provider abstraction for future AI-provider support
+  
 Generated Projects
 Generated websites use:
 - React
 - Next.js
 - TypeScript
 - Tailwind CSS
-
+  
 Generated websites are created dynamically under generated-sites/ during local execution. This directory is intentionally ignored by Git.
 
 ---
@@ -154,6 +156,7 @@ Generated websites are created dynamically under generated-sites/ during local e
 1. Website Analysis
 The user provides a publicly accessible URL.
 The analyzer launches Chromium through Playwright and inspects the rendered page.
+
 It extracts information such as:
 - Page metadata
 - Navigation links
@@ -187,6 +190,7 @@ Separating planning from code generation gives the generator a more structured r
 
 3. Code Generation
 The generator converts the AI plan and website analysis into a new Next.js project.
+
 Generated code is instructed to:
 - Use Next.js App Router
 - Use TypeScript
@@ -213,7 +217,7 @@ The validation step catches problems such as:
 - Tailwind configuration issues
 - Invalid Next.js APIs
 - Generated project configuration problems
-  
+- 
 5. AI Repair Loop
 Generated code can fail even when the overall generation plan is correct.
 When a build fails, the actual compiler/build error is sent to the AI repair system.
@@ -232,7 +236,7 @@ Targeted File Changes
        ↓
     Success
 ```
-
+---
 The repair system:
 1. Reads the generated project files
 2. Reads the actual build error
@@ -240,7 +244,6 @@ The repair system:
 4. Applies the changes
 5. Runs the build again
 The repair process is limited to a small number of attempts to prevent endless retries.
----
 🖥️ Local Preview
 After successful validation, the generated project is started locally.
 Preview ports are selected dynamically to avoid collisions between generated projects.
@@ -250,8 +253,8 @@ http://localhost:3101
 http://localhost:3102
 
 The preview server also handles the lifecycle of generated projects by stopping the previous preview before rebuilding and starting a fresh preview.
----
 
+---
 ✏️ Natural-Language Modification
 After generation, the user can modify the generated website using normal language.
 Example:
@@ -274,7 +277,7 @@ AI Repair if Required
           ↓
 Restart Preview
 ```
-
+---
 The modifier is instructed to preserve:
 - Existing layout
 - Typography
@@ -286,7 +289,6 @@ The modifier is instructed to preserve:
 - Functionality
 This prevents a small requested change from unnecessarily redesigning the entire generated website.
 ---
-
 🤖 AI Provider Configuration
 The application uses a provider abstraction so the AI implementation can be changed without rewriting the generation workflow.
 The current setup uses Google Gemini.
@@ -295,11 +297,9 @@ AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-3.5-flash-lite
 
-Never commit .env.local or expose the API key publicly.
-
-The repository .gitignore already excludes environment files.
 ---
-
+Never commit .env.local or expose the API key publicly.
+The repository .gitignore already excludes environment files.
 ⚙️ Getting Started
 1. Clone the repository
 git clone https://github.com/nirbhayyyy18/ai-website-cloner.git
@@ -334,6 +334,7 @@ https://www.apple.com/
 Then click:
 Generate Frontend
 
+```text
 The application performs:
 Analyze
    ↓
@@ -346,10 +347,10 @@ Validate
 Repair if needed
    ↓
 Start Preview
-
+```
+---
 Modify a Generated Website
 After generation, use the AI modification section.
-
 Example prompts:
 Make the navbar sticky.
 
@@ -360,12 +361,16 @@ Add a testimonials section below the hero.
 Remove the pricing section while preserving the rest of the design.
 
 The generated project is rebuilt and a fresh preview is started after the modification.
+
+---
 🧪 Validation Strategy
 The system uses multiple validation layers.
 Generated Code Validation
 Generated file paths and project structure are checked before writing the project.
+
 Next.js Validation
 The generated project is checked for unsupported patterns, including accidental Pages Router APIs when using the App Router.
+
 Production Build
 The generated project must successfully pass:
 next build
@@ -373,8 +378,8 @@ next build
 Runtime Preview Validation
 The preview server waits for the generated application to become responsive.
 HTTP 500 responses and common runtime failures are surfaced instead of being silently ignored.
----
 
+---
 🧩 Design Decisions
 Why Playwright?
 The target website is analyzed after rendering so the system can inspect the actual rendered UI instead of relying only on raw HTML.
@@ -384,6 +389,7 @@ Planning is separated from code generation so the generator receives structured 
 
 Why a Repair Loop?
 AI-generated code can fail because of imports, dependencies, client/server boundaries or framework-specific constraints.
+
 Passing the real compiler error back to the model makes the generation workflow more resilient.
 
 Why Local Preview?
@@ -396,12 +402,7 @@ Why Targeted Modification?
 Regenerating the entire website for every user request could destroy previously generated design decisions.
 The modifier therefore focuses on the requested change while preserving the existing implementation.
 
-💰 Cost Awareness
-This project is designed as a local-first MVP.
-The current implementation uses Google Gemini through an environment-configured provider.
-No production hosting or external deployment infrastructure is required.
-Generated projects, previews and browser analysis run locally.
-The provider abstraction also allows the AI backend to be changed later without redesigning the complete workflow.
+---
 
 🌐 Generalization
 The implementation is not hardcoded to a specific website.
@@ -423,21 +424,10 @@ Preview
  ↓
 Modify
 ```
+---
 The analyzer extracts website-specific information dynamically, while the generator uses that information to produce the frontend.
 
-⚠️ Limitations
-This is a 48-hour take-home MVP rather than a production website recreation platform.
-Current limitations include:
-- Highly dynamic websites may not expose all content during initial analysis.
-- Authentication-protected pages are outside the public-URL workflow.
-- Interactive behavior of the original website may not always be reproduced exactly.
-- Complex JavaScript applications may require additional analysis strategies.
-- External image hosts may impose restrictions or change independently.
-- Pixel-perfect reproduction is not guaranteed for every website.
-- AI-generated code may require multiple repair attempts.
-- Generated previews are intended for local development rather than production deployment.
-- Multi-page websites may require additional generation logic.
-
+---
 🎬 Demo Flow
 The recommended demonstration follows the complete agent workflow:
 ```text
@@ -457,27 +447,3 @@ The recommended demonstration follows the complete agent workflow:
         ↓
 8. Explain validation + AI repair loop
 ```
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
