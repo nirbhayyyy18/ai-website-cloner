@@ -246,6 +246,8 @@ The repair system:
 4. Applies the changes
 5. Runs the build again
 The repair process is limited to a small number of attempts to prevent endless retries.
+
+---
 🖥️ Local Preview
 After successful validation, the generated project is started locally.
 Preview ports are selected dynamically to avoid collisions between generated projects.
