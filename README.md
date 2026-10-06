@@ -127,6 +127,13 @@ The system is designed to work with different public websites rather than being 
                                              Updated Preview
 ```
 ---
+### Architecture Diagram
+
+For a visual Mermaid version of the architecture:
+
+[View Architecture Diagram](./architecture/architecture.mmd)
+
+---
 🛠️ Tech Stack
 Main Application
 - Next.js
