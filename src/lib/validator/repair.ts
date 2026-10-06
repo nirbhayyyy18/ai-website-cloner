@@ -83,8 +83,6 @@ function validateRepairFiles(
       );
     }
 
-    // Prevent the repair agent from introducing
-    // Next.js Pages Router / document-level APIs.
     const content = item.content;
 
     if (
@@ -99,8 +97,6 @@ function validateRepairFiles(
       );
     }
 
-    // The generated application must be a real frontend,
-    // not an iframe/embed of the source website.
     if (
       /<iframe[\s>]/i.test(content) ||
       /<embed[\s>]/i.test(content)
@@ -112,30 +108,15 @@ function validateRepairFiles(
   }
 }
 
-/**
- * AI models sometimes return:
- *
- * ```json
- * {...}
- * ```
- *
- * instead of pure JSON.
- *
- * This helper removes markdown fences and attempts
- * to isolate the JSON object.
- */
 function cleanAIJsonResponse(content: string): string {
   let cleaned = content.trim();
 
-  // Remove markdown code fences.
   cleaned = cleaned
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
 
-  // If the model added explanatory text before/after
-  // the JSON, isolate the outer JSON object.
   const firstBrace = cleaned.indexOf("{");
   const lastBrace = cleaned.lastIndexOf("}");
 
@@ -153,24 +134,70 @@ function cleanAIJsonResponse(content: string): string {
   return cleaned.trim();
 }
 
+/**
+ * Extract likely file paths mentioned in a Next.js build error.
+ *
+ * Example:
+ * ./src/components/GlobalNav.tsx
+ * ./src/app/page.tsx
+ */
+function extractRelevantFilePaths(
+  validation: BuildValidationResult,
+  files: GeneratedFile[]
+): GeneratedFile[] {
+  const buildOutput = [
+    validation.stdout ?? "",
+    validation.stderr ?? "",
+  ].join("\n");
+
+  const mentionedPaths = new Set<string>();
+
+  const pathRegex =
+    /(?:\.\/)?(src\/(?:app|components)\/[A-Za-z0-9._/-]+\.(?:tsx|ts|jsx|js|css))/g;
+
+  for (const match of buildOutput.matchAll(pathRegex)) {
+    mentionedPaths.add(match[1]);
+  }
+
+  const relevantFiles = files.filter((file) =>
+    mentionedPaths.has(file.path)
+  );
+
+  if (relevantFiles.length > 0) {
+    return relevantFiles;
+  }
+
+  // Safe fallback:
+  // If the compiler does not expose a clear file path,
+  // provide only the main application files instead of
+  // sending the entire generated project.
+  return files.filter(
+    (file) =>
+      file.path === "src/app/page.tsx" ||
+      file.path === "src/app/layout.tsx" ||
+      file.path === "src/app/globals.css"
+  );
+}
+
 function buildRepairPrompt(
-  input: RepairInput
+  input: RepairInput,
+  relevantFiles: GeneratedFile[]
 ): string {
   return `
 You are a senior React and Next.js debugging engineer.
 
 A generated website frontend failed its production build.
 
-Your job is to make the SMALLEST possible code change that fixes the actual build error.
+Your job is to make the SMALLEST possible code change that fixes the ACTUAL build error.
 
 IMPORTANT:
 
 1. Inspect the BUILD STDERR and BUILD STDOUT carefully.
-2. Fix the actual error reported by the compiler.
+2. Fix only the compiler/build error reported.
 3. Preserve the existing visual design.
 4. Preserve the existing layout and functionality.
 5. Do not rewrite files that do not need changes.
-6. Return ONLY the files that actually need modification.
+6. Return ONLY files that actually need modification.
 7. Return the COMPLETE CONTENT of every modified file.
 8. Return ONLY valid JSON.
 9. Do NOT use markdown code fences.
@@ -193,6 +220,13 @@ NEXT.JS RULES:
 - Never import Metadata from React.
 - Never use next/document.
 - Do not use <Html>, <Main>, or <NextScript>.
+- If a component uses useState, useEffect, useRef,
+  useMemo, useCallback, browser APIs, or event handlers,
+  add "use client"; at the top when required.
+- The directive must be exactly:
+  "use client";
+- Do not write:
+  "client";
 
 TAILWIND RULES:
 
@@ -219,27 +253,34 @@ BUILD STDERR:
 
 ${input.validation.stderr}
 
-CURRENT GENERATED FILES:
+RELEVANT GENERATED FILES:
 
-${JSON.stringify(input.files, null, 2)}
+${JSON.stringify(relevantFiles, null, 2)}
 
 VERY IMPORTANT:
 
 Only return files that must be changed to fix the build.
+
+If the problem is a missing "use client" directive,
+add the directive and otherwise preserve the file.
+
+If the problem is an incorrect import,
+fix only the incorrect import.
+
+If the problem is a TypeScript error,
+fix only the code responsible for that error.
 
 Return exactly this JSON structure:
 
 {
   "files": [
     {
-      "path": "src/app/layout.tsx",
+      "path": "src/components/Example.tsx",
       "content": "complete file content"
     }
   ],
   "explanation": "short explanation"
 }
-
-If the build error is caused by one file, return only that file.
 
 Do not return unchanged files.
 `.trim();
@@ -255,12 +296,22 @@ export async function repairGeneratedProject(
     );
   }
 
+  const relevantFiles = extractRelevantFilePaths(
+    input.validation,
+    input.files
+  );
+
+  console.log(
+    "[repair] Relevant files:",
+    relevantFiles.map((file) => file.path).join(", ")
+  );
+
   const response = await provider.generate({
     temperature: 0.1,
 
-    // Keep the response large enough for a complete
-    // repaired file, while keeping the repair task focused.
-    maxTokens: 12000,
+    // Enough for complete repaired files while
+    // preventing unnecessarily large responses.
+    maxTokens: 6000,
 
     messages: [
       {
@@ -280,7 +331,10 @@ Return complete file contents.
       },
       {
         role: "user",
-        content: buildRepairPrompt(input),
+        content: buildRepairPrompt(
+          input,
+          relevantFiles
+        ),
       },
     ],
   });

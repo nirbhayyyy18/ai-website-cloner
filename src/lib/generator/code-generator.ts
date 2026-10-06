@@ -74,13 +74,48 @@ function validateNextJsAppRouterCode(
       `Pages Router file is not allowed: ${filePath}`
     );
   }
+
+  // Detect common React hooks/browser APIs in Server Components.
+  const usesClientFeatures =
+    /\b(useState|useEffect|useRef|useMemo|useCallback|useReducer|useLayoutEffect)\b/.test(
+      content
+    ) ||
+    /\b(window|document|localStorage|sessionStorage)\b/.test(
+      content
+    ) ||
+    /\bon[A-Z][A-Za-z]+\s*=/.test(content);
+
+  const hasUseClientDirective =
+    /^\s*["']use client["'];?/m.test(content);
+
+  if (
+    filePath.startsWith("src/components/") &&
+    usesClientFeatures &&
+    !hasUseClientDirective
+  ) {
+    throw new Error(
+      `Client component "${filePath}" uses React hooks, browser APIs, or event handlers but is missing the exact "use client"; directive.`
+    );
+  }
+
+  // Reject common malformed client directives.
+  if (
+    /^\s*["'](?:client|use-client)["'];?/m.test(content) ||
+    /["']import client["'];?/.test(content)
+  ) {
+    throw new Error(
+      `Invalid client directive in ${filePath}. Use exactly "use client";`
+    );
+  }
 }
 
 function validateGeneratedProject(
   project: unknown
 ): asserts project is GeneratedProject {
   if (!project || typeof project !== "object") {
-    throw new Error("AI returned an invalid generated project.");
+    throw new Error(
+      "AI returned an invalid generated project."
+    );
   }
 
   const value = project as Record<string, unknown>;
@@ -91,7 +126,10 @@ function validateGeneratedProject(
     );
   }
 
-  if (typeof value.entryFile !== "string" || !value.entryFile.trim()) {
+  if (
+    typeof value.entryFile !== "string" ||
+    !value.entryFile.trim()
+  ) {
     throw new Error(
       'Invalid generated project: "entryFile" must be a non-empty string.'
     );
@@ -205,6 +243,68 @@ NEXT.JS APP ROUTER RULES:
   import type { Metadata } from "next";
 - Do not import Metadata from React.
 
+CLIENT COMPONENT RULES:
+
+This is VERY IMPORTANT.
+
+Next.js App Router components are Server Components by default.
+
+If a component uses ANY of the following:
+
+- useState
+- useEffect
+- useRef
+- useMemo
+- useCallback
+- useReducer
+- useLayoutEffect
+- window
+- document
+- localStorage
+- sessionStorage
+- browser APIs
+- interactive event handlers such as onClick, onChange, onSubmit,
+  onMouseEnter, onMouseLeave, etc.
+
+then that component MUST start with this exact directive:
+
+"use client";
+
+The directive must be the FIRST statement in the file.
+
+Correct:
+
+"use client";
+
+import React, { useState } from "react";
+
+Incorrect:
+
+"client";
+
+import React, { useState } from "react";
+
+Incorrect:
+
+"import client";
+
+import React, { useState } from "react";
+
+Incorrect:
+
+import React, { useState } from "react";
+
+export default function Navbar() {
+  const [open, setOpen] = useState(false);
+}
+
+Never generate malformed client directives.
+
+Do not add "use client" to files that do not need client-side
+features unless necessary.
+
+Keep Server Components as Server Components whenever possible.
+
 TAILWIND CSS RULES:
 
 - This generated project uses Tailwind CSS 3.4.17.
@@ -216,7 +316,7 @@ TAILWIND CSS RULES:
   @tailwind utilities;
 - If using '@layer base', '@tailwind base' must be declared before it.
 - Plain CSS is also allowed and may be used instead of Tailwind.
-- Do not mix Tailwind v3 and Tailwind v4 syntax.
+- Do not mix Tailwind v3 and v4 syntax.
 
 Generate the following JSON structure:
 
@@ -277,7 +377,7 @@ export function buildCodeGenerationRequest({
       {
         role: "system" as const,
         content:
-          "You are a senior React/Next.js engineer who generates production-quality frontend code from structured website analysis.",
+          "You are a senior React/Next.js engineer who generates production-quality frontend code from structured website analysis. Always follow Next.js App Router client/server component rules.",
       },
       {
         role: "user" as const,
