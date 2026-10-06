@@ -33,6 +33,8 @@ Rebuild + Validation
         ↓
 Updated Preview
 
+```
+
 The system is designed to work with different public websites rather than being hardcoded to a single target.
 🚀 Features
 - Analyze publicly accessible websites using Playwright + Chromium
@@ -51,6 +53,9 @@ The system is designed to work with different public websites rather than being 
 - Preserve existing design during targeted modifications
 - Rebuild and restart the preview after modifications
 - Run locally without requiring production hosting
+---
+
+```text
 🧠 Architecture
                          ┌─────────────────────┐
                          │   Public Website    │
@@ -120,6 +125,7 @@ The system is designed to work with different public websites rather than being 
                                                  ▼
                                           Updated Preview
 
+```
 🛠️ Tech Stack
 Main Application
 - Next.js
