@@ -249,6 +249,7 @@ The repair process is limited to a small number of attempts to prevent endless r
 
 ---
 🖥️ Local Preview
+
 After successful validation, the generated project is started locally.
 Preview ports are selected dynamically to avoid collisions between generated projects.
 Example:
